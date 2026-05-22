@@ -27,4 +27,4 @@ ignore_missing_imports = true
 
 [tool.uv.sources]
 beat-this = { url = "https://github.com/CPJKU/beat_this/archive/main.zip" }
-tilia = { git = "https://github.com/TimeLineAnnotator/desktop", branch = "fix-cli-import" }
+tilia = { git = "https://github.com/TimeLineAnnotator/desktop", branch = "dev" }
