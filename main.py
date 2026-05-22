@@ -20,6 +20,20 @@ def get_filename(id: str, artist: str, song: str) -> str:
     )
 
 
+def get_yt_metadata(url: str) -> tuple[str, str]:
+    result = subprocess.run(
+        ["yt-dlp", "--print", "%(uploader)s\t%(title)s", "--no-download", url],
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode != 0 or not result.stdout.strip():
+        return "unknown", "unknown"
+    parts = result.stdout.strip().split("\t", 1)
+    uploader = parts[0].strip() or "unknown"
+    title = parts[1].strip() if len(parts) > 1 else "unknown"
+    return uploader, title or "unknown"
+
+
 def download(
     output_dir: str,
     id: str,
@@ -170,9 +184,66 @@ def create_tilia_file(
     )
 
 
+def run_one_off(
+    *,
+    output_dir: str,
+    id: str,
+    artist: str | None,
+    title: str | None,
+    link: str | None,
+    force_download: bool,
+    force_beats: bool,
+    force_tilia: bool,
+) -> None:
+    search_result: dict[str, Any] | None = None
+
+    if link:
+        if not artist or not title:
+            derived_artist, derived_title = get_yt_metadata(link)
+            artist = artist or derived_artist
+            title = title or derived_title
+    else:
+        assert title is not None
+        query = f"{artist} {title}" if artist else title
+        results = YoutubeSearch(query.replace("?", ""), max_results=1).to_dict()
+        if not results:
+            print(f"ERROR: No results found for: {query}")
+            return
+        first: dict[str, Any] = results[0]
+        search_result = first
+        if not artist:
+            artist = str(first.get("channel", "unknown") or "unknown")
+        link = "https://www.youtube.com/watch?v=" + str(first["id"])
+
+    assert artist is not None
+    assert title is not None
+
+    download(output_dir, id, artist, title, force=force_download, link=link)
+
+    if search_result:
+        write_youtube_search_results(output_dir, id, artist, title, search_result)
+
+    infer_beats(output_dir, id, artist, title, force=force_beats)
+    create_tilia_file(output_dir, id, artist, title, force=force_tilia)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Download songs and infer beats.")
-    parser.add_argument("tsv", help="Path to songs.tsv")
+    parser.add_argument("tsv", nargs="?", help="Path to songs.tsv (batch mode)")
+    parser.add_argument("--link", help="YouTube URL (one-off mode)")
+    parser.add_argument(
+        "--search", action="store_true", help="Search YouTube (one-off mode)"
+    )
+    parser.add_argument("--artist", help="Artist name (one-off modes)")
+    parser.add_argument("--title", help="Song title (one-off modes)")
+    parser.add_argument(
+        "--id", default="001", help="Song ID (one-off modes, default: 001)"
+    )
+    parser.add_argument(
+        "--output-dir",
+        default=".",
+        help="Output directory (one-off modes, default: cwd)",
+    )
     parser.add_argument(
         "--redo-download",
         action="store_true",
@@ -200,7 +271,29 @@ def main() -> None:
         args.redo_beats = True
         args.redo_tilia = True
 
+    modes = sum([bool(args.tsv), bool(args.link), args.search])
+    if modes == 0:
+        parser.error("Provide a TSV path, --link URL, or --search.")
+    if modes > 1:
+        parser.error("Only one of TSV path, --link, or --search may be used at a time.")
+    if args.search and not args.title:
+        parser.error("--search requires --title.")
+
+    if args.link or args.search:
+        run_one_off(
+            output_dir=args.output_dir,
+            id=args.id,
+            artist=args.artist,
+            title=args.title,
+            link=args.link,
+            force_download=args.redo_download,
+            force_beats=args.redo_beats,
+            force_tilia=args.redo_tilia,
+        )
+        return
+
     tsv_path = args.tsv
+    assert tsv_path is not None
     output_dir = os.path.dirname(tsv_path)
     with open(tsv_path, "r", encoding="utf-8") as f:
         header = f.readline().strip().split("\t")
