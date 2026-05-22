@@ -24,13 +24,27 @@ uv sync
 
 ## Usage
 
+### Batch mode (TSV)
+
 ```bash
 python main.py <dataset>/songs.tsv
 ```
 
-The output directory is derived from the TSV path — all files are written next to the TSV.
+Output directory is derived from the TSV path — all files are written next to it.
 
-### Options
+### One-off mode
+
+```bash
+# Direct URL
+python main.py --link "https://www.youtube.com/watch?v=..." [--artist X] [--title Y] [--id N] [--output-dir DIR]
+
+# YouTube search
+python main.py --search --title "Hyrule Field Main Theme" [--artist X] [--id N] [--output-dir DIR]
+```
+
+`--artist`, `--title`, and `--id` are optional (default ID: `001`). Missing artist/title are derived from the YouTube result. Output defaults to the current directory.
+
+### Common flags
 
 | Flag | Description |
 |---|---|
