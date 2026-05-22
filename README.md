@@ -1,5 +1,7 @@
 # yt-to-tilia
 
+> **Note:** This project is unpolished and built for personal use. It works, and I'm making it public because it may already be useful to others — but expect rough edges. A more robust version is planned. PRs are very welcome.
+
 CLI tool that bulk-downloads music from YouTube and produces [TiLiA](https://tilia-ad98d.web.app/) project files with beat annotations.
 
 ## What it does
