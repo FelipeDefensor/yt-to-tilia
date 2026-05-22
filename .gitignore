@@ -1,0 +1,27 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# Pycharm
+.idea/
+
+# Media files
+*.mp3
+*.mp4
+*.webm
+
+# Generated pipeline output
+*.beats
+*.beats.csv
+*.tilia
+*.tla
+
+# Claude Code local settings
+.claude/settings.local.json

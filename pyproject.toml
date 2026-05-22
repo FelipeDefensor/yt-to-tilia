@@ -1,0 +1,30 @@
+[project]
+name = "yt-to-tilia"
+version = "0.1.0"
+description = "Downloads music from YouTube and prepares beat-annotated TiLiA files"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "beat-this",
+    "soundfile>=0.13.1",  # audio backend for beat-this
+    "tilia",
+    "youtube-search>=2.2.0",
+]
+
+[dependency-groups]
+dev = [
+    "mypy>=1.15.0",
+    "pre-commit>=4.2.0",
+    "ruff>=0.11.2",
+]
+
+[tool.mypy]
+strict = true
+
+[[tool.mypy.overrides]]
+module = ["youtube_search", "beat_this.*", "tilia.*"]
+ignore_missing_imports = true
+
+[tool.uv.sources]
+beat-this = { url = "https://github.com/CPJKU/beat_this/archive/main.zip" }
+tilia = { git = "https://github.com/TimeLineAnnotator/desktop", branch = "fix-cli-import" }
