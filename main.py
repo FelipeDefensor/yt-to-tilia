@@ -167,10 +167,10 @@ def create_tilia_file(
     lines = [
         f'metadata set "title" "{song}"',
         f'metadata set "artist" "{artist}"',
-        f"load-media {mp3_path}",
+        f'load-media "{mp3_path}"',
         "timeline add beat --name Beats --beat-pattern 1",
-        f"timeline import beat --target-name Beats --file {beats_csv_path}",
-        f"save {tla_path} --overwrite",
+        f'timeline import beat --target-name Beats --file "{beats_csv_path}"',
+        f'save "{tla_path}" --overwrite',
     ]
 
     with open(script_path, "w", encoding="utf-8") as f:
@@ -178,7 +178,7 @@ def create_tilia_file(
 
     subprocess.run(
         ["tilia", "-i", "cli"],
-        input=f"script {script_path}\nquit\n",
+        input=f'script "{script_path}"\nquit\n',
         text=True,
         check=True,
     )
